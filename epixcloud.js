@@ -5,7 +5,7 @@
  *
  * TOPICS CLOUD, HOOOOOO!
  *
- * version 0.2
+ * version 0.3
  *
  * required options:
  *   topics               Array   An array of topic object in the following format:
@@ -25,6 +25,7 @@
  *   idHead               String  The head of the ID for each topic
  *   async                Bool    If set true then the cloud runs asynchronously, but you probably don't need this
  *   noscale              Bool    If true then the cloud doesn't fit to it's container
+ *   circle               Bool    If true then the cloud renders as a circle rather than rectangle
  *
  * Example Usage:
  *
@@ -132,8 +133,45 @@ define(['jquery', 'underscore'], function($, _){
         this.weightClass = options.weightClass || 'epixweight-';
         this.idHead = options.idHead || 'epixcloud-';
         this.noscale = !!options.noscale;
+        this.circular = !!options.circle;
 
         this.init();
+    }
+
+    function isPointInCircle(circleOriginX, circleOriginY, x, y, radius){
+        var dist = Math.sqrt(Math.pow(circleOriginX - x, 2) + Math.pow(circleOriginY - y, 2));
+
+        return dist <= radius;
+    }
+
+    function squareifyViewport($el){
+        var w = $el.width(),
+            h = $el.height(),
+            smallestEdge = Math.min(w, h),
+            marginTop = Math.floor((h - smallestEdge) / 2),
+            marginLeft = Math.floor((w - smallestEdge) / 2);
+
+        $el.css({
+            width: smallestEdge,
+            height: smallestEdge,
+            marginTop: marginTop,
+            marginLeft: marginLeft
+        });
+    }
+
+    function isBoxInCircle(box, containerSize){
+        var radius = Math.floor(_.min(containerSize) / 2),
+            centerX = Math.floor(containerSize[0] / 2),
+            centerY = Math.floor(containerSize[1] / 2);
+
+        return isPointInCircle(centerX, centerY, box[0], box[1], radius) &&
+               isPointInCircle(centerX, centerY, box[0], box[3], radius) &&
+               isPointInCircle(centerX, centerY, box[2], box[1], radius) &&
+               isPointInCircle(centerX, centerY, box[2], box[3], radius);
+    }
+
+    function isBoxInRectangle(box, containerSize){
+        return box[0] > 0 && box[1] > 0 && box[2] < containerSize[0] && box[3] < containerSize[1];
     }
 
     EpixCloud.prototype.init = function(){
@@ -189,16 +227,19 @@ define(['jquery', 'underscore'], function($, _){
         };
     };
 
+    EpixCloud.prototype.isBoxInContainer = function(box){
+        if(this.circular){
+            return isBoxInCircle(box, this.containerSize);
+        }
+        return isBoxInRectangle(box, this.containerSize);
+    };
+
     EpixCloud.prototype.calculateFigureSpace = function(){
         var self = this;
 
         this.figureSpace = _(this.topics).map(function(topic){
             return self.measureTopicBox(topic);
         });
-    };
-
-    EpixCloud.prototype.isBoxInContainer = function(box){
-        return box[0] > 0 && box[1] > 0 && box[2] < this.containerSize[0] && box[3] < this.containerSize[1];
     };
 
     EpixCloud.prototype.isSpaceAvailable = function(box){
@@ -356,6 +397,9 @@ define(['jquery', 'underscore'], function($, _){
 
         // cast yon eye o'er the battlefield
         if(!this.noscale){
+            if(this.circular){
+                squareifyViewport(this.$el);
+            }
             this.autoFit();
         }
 
