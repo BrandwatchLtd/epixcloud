@@ -319,11 +319,10 @@ define(['jquery', 'underscore'], function($, _){
 
         this.$el.find('.' + this.wordClass).each(function(){
             var $this = $(this),
-                pos = $this.position(),
                 w = $this.outerWidth(),
                 h = $this.outerHeight(),
-                t = pos.top,
-                l = pos.left,
+                t = this.offsetTop,
+                l = this.offsetLeft,
                 r = l + w,
                 b = t + h;
 

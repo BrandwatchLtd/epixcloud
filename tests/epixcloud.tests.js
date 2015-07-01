@@ -861,5 +861,37 @@ define([
             });
         });
 
+        describe('when rendered in an externally scaled element and the noscale option has not been passed', function(){
+            var $topics;
+
+            beforeEach(function(){
+                var $testArea = $('<div style="width:600px;height:600px;"/>').appendTo('body');
+
+                cloud = new EpixCloud({topics: testTopics, $el: $testArea});
+
+                $testArea.css({
+                    '-webkit-transform': 'scale(3)',
+                    '-moz-transform': 'scale(3)',
+                    'transform': 'scale(3)'
+                });
+
+                cloud.render();
+
+                $topics = $testArea.find('.epixword');
+            });
+
+            it('does not plot any topic outside of the container', function(){
+                expect($topics.get(0).offsetLeft).toBeGreaterThan(0);
+                expect($topics.get(0).offsetTop).toBeGreaterThan(0);
+                expect($topics.get(1).offsetLeft).toBeGreaterThan(0);
+                expect($topics.get(1).offsetTop).toBeGreaterThan(0);
+                expect($topics.get(2).offsetLeft).toBeGreaterThan(0);
+                expect($topics.get(2).offsetTop).toBeGreaterThan(0);
+                expect($topics.get(3).offsetLeft).toBeGreaterThan(0);
+                expect($topics.get(3).offsetTop).toBeGreaterThan(0);
+                expect($topics.get(4).offsetLeft).toBeGreaterThan(0);
+                expect($topics.get(4).offsetTop).toBeGreaterThan(0);
+            });
+        });
     });
 });
